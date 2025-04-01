@@ -1,0 +1,4 @@
+parent	child	percent	min	max	comment
+savings	rent	NA	700	700	monthly_rent
+savings	savings	0.20	NA 	NA 	my_life_savings
+checking	checking	0.20	NA 	NA 	slush_and_bills

@@ -1,0 +1,57 @@
+CC=cl.exe
+LD=link.exe
+PREFIX=%localAppData%
+NAME=acnt.exe
+genLib=genLib
+O=o.unix
+
+# user can wipe these flags
+CFLAGS= /DNONE
+LDFLAGS= /DNONE
+
+#these flags should never be changed by user
+coreCFlags= /c /O2 /Ot /Za /Tc
+coreLDFlags= /DNONE
+
+objFiles=\
+   $(genLib)\numToStr.$O \
+   $(genLib)\base10str.$O \
+   $(genLib)\ulCp.$O \
+   $(genLib)\strAry.$O \
+   $(genLib)\ptrAry.$O \
+   acnt.$O \
+   cmdAcnt.$O \
+   mainAcnt.$O \
+
+all: mainAcnt.$O
+	$(LD) /out:$(NAME) $(coreLDFlags) $(LDFLAGS) $(objFiles)
+
+mainAcnt.$O: mainAcnt.c defsAcnt.h cmdAcnt.$O
+	$(CC) /Fo:mainAcnt.$O $(coreCFlags) $(CFLAGS) mainAcnt.c
+
+cmdAcnt.$O: cmdAcnt.c cmdAcnt.h acnt.$O
+	$(CC) /Fo:cmdAcnt.$O $(coreCFlags) $(CFLAGS) cmdAcnt.c
+
+acnt.$O: acnt.c acnt.h $(genLib)\ptrAry.$O $(genLib)\strAry.$O $(genLib)\numToStr.$O $(genLib)\base10str.$O
+	$(CC) /Fo:acnt.$O $(coreCFlags) $(CFLAGS) acnt.c
+
+$(genLib)\ptrAry.$O: $(genLib)\ptrAry.c $(genLib)\ptrAry.h $(genLib)\ulCp.$O
+	$(CC) /Fo:$(genLib)\ptrAry.$O $(coreCFlags) $(CFLAGS) $(genLib)\ptrAry.c
+
+$(genLib)\strAry.$O: $(genLib)\strAry.c $(genLib)\strAry.h $(genLib)\ulCp.$O
+	$(CC) /Fo:$(genLib)\strAry.$O $(coreCFlags) $(CFLAGS) $(genLib)\strAry.c
+
+$(genLib)\ulCp.$O: $(genLib)\ulCp.c $(genLib)\ulCp.h
+	$(CC) /Fo:$(genLib)\ulCp.$O $(coreCFlags) $(CFLAGS) $(genLib)\ulCp.c
+
+$(genLib)\numToStr.$O: $(genLib)\numToStr.c $(genLib)\numToStr.h
+	$(CC) /Fo:$(genLib)\numToStr.$O $(coreCFlags) $(CFLAGS) $(genLib)\numToStr.c
+
+$(genLib)\base10str.$O: $(genLib)\base10str.c $(genLib)\base10str.h
+	$(CC) /Fo:$(genLib)\base10str.$O $(coreCFlags) $(CFLAGS) $(genLib)\base10str.c
+
+install:
+	move $(NAME) $(PREFIX)
+
+clean:
+	del $(objFiles)

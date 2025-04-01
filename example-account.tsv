@@ -1,0 +1,9 @@
+parent	account	year	month	day	amount	total	reason
+savings	rent	2021	01	14	700	700	frist_paycheck
+savings	savings	2021	01	14	100	100	first_paycheck
+checking	checking	2021	01	14	400	400	first_paycheck
+checking	checking	2021	01	20	-100	300	some_expense
+checking	checking	2021	01	25	-60	240	gas
+savings	rent	2021	01	28	700	1400	second_paycheck
+savings	savings	2021	02	28	200	300	second_paycheck
+checking	checking	2021	01	28	400	640	second_paycheck
