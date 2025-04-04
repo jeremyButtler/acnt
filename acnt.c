@@ -3265,7 +3265,7 @@ pEntries_st_acnt(
    /*printing header for user*/
    fprintf(
       (FILE *) outFILE,
-      "par\tchild\tyear\tmonth\tday\tamount\ttotal"
+      "index\tpar\tchild\tyear\tmonth\tday\tamount\ttotal"
    );
 
    fprintf(

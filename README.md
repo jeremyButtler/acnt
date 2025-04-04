@@ -177,6 +177,11 @@ To start an interactive sesssion
   before account can open it. Instead
   do `acnt -file account.tsv -out account.tsv`.
 
+If you want a summary of your transactions in 2024, you
+  can do `acnt -file account.tsv -print -end-year 2024 | cut -f 2-9 | acnt -file -`.
+  Needing cut is not best solution, but I want to keep the
+  index's for `-del` (`-del index`).
+
 If you want to check the result of an trasanction before
   making it, you can use the `-pretend` option (does not
   apply to `-prompt`), which will print out a fake
@@ -293,6 +298,7 @@ Acnt applies commands in a certain order. The first
 - 2025-04-03:
   - fixed minor error message issue when forgot parent or
     child account with add
+  - addin index header for `-print`
   - removed `-amount value` flag adn changed `-add`
     and `-divy` to take in the transaction amount, so
     you can use both add and divy in same run
