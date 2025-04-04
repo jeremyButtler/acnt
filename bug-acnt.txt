@@ -1,3 +1,4 @@
 #b mainAcnt.c:2282
 
-r -file account.tsv -divy-file divy.tsv -prompt
+#r -file account.tsv -divy-file divy.tsv -prompt
+r -file del.tsv -add -amount 56.45 -note gas -par savings -child gas > del.tsv

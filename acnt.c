@@ -1539,8 +1539,8 @@ readFile_acnt(
          (FILE *) acntFILE
       );
 
-   if(! *tmpStr)
-      goto noFile_fun18_sec05; /*nothing inf file*/
+   if(! tmpStr)
+      goto noFile_fun18_sec05; /*nothing in file*/
 
    ++lineSL;
 

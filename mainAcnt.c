@@ -321,13 +321,19 @@ phelp_mainAcnt(
 
    fprintf(
       (FILE *) outFILE,
-      "    -add: [Optional; NA]%s",
+      "    -add amount: [Optional; NA]%s",
       str_endLine
    );
 
    fprintf(
       (FILE *) outFILE,
-      "      o add entry to account file (-file)%s",
+      "      o add entry with amount to account file%s",
+      str_endLine
+   );
+
+   fprintf(
+      (FILE *) outFILE,
+      "      o postiive = increase,negative = decrease%s",
       str_endLine
    );
 
@@ -355,13 +361,19 @@ phelp_mainAcnt(
 
    fprintf(
       (FILE *) outFILE,
-      "    -divy: [Optional; NA]%s",
+      "    -divy amount: [Optional; amount]%s",
       str_endLine
    );
 
    fprintf(
       (FILE *) outFILE,
       "      o divide funds using -divy-file divy.tsv%s",
+      str_endLine
+   );
+
+   fprintf(
+      (FILE *) outFILE,
+      "      o postiive = increase,negative = decrease%s",
       str_endLine
    );
 
@@ -827,8 +839,10 @@ phelp_mainAcnt(
 |     o c-stirng pointer to piont to parent account name
 |   - childStrPtr,   
 |     o c-stirng pointer to piont to child account name
-|   - amountFPtr,           
-|     o float pointer to get amount of transaction
+|   - addAmountFPtr,           
+|     o float pointer to get amount of add transaction
+|   - divyAmountFPtr,           
+|     o float pointer to get amount of divy transaction
 |   - yearSSPtr,     
 |     o signed short ponter to get year
 |   - monthSCPtr,     
@@ -869,7 +883,8 @@ input_mainAcnt(
    signed char *cmdFlagsSCPtr,   /*holds command to run*/
    signed char **parStrPtr,     /*parent account*/
    signed char **childStrPtr,   /*child account*/
-   float *amountFPtr,           /*amount to apply*/
+   float *addAmountFPtr,        /*amount to apply*/
+   float *divyAmountFPtr,       /*amount to apply*/
    signed short *yearSSPtr,     /*year to use*/
    signed char *monthSCPtr,     /*month to use*/
    signed char *daySCPtr,       /*day to use*/
@@ -1008,18 +1023,26 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: user adding account entry*/
-         if(*cmdFlagsSCPtr & def_addCmd_mainAcnt)
-         { /*If: doing both add and divy*/
+         *cmdFlagsSCPtr |= def_addCmd_mainAcnt;
+         ++siArg;
+         tmpStr = (signed char *) argAryStr[siArg];
+
+         tmpStr +=
+            strToF_base10str(
+               tmpStr,
+               addAmountFPtr
+            );
+
+         if(*tmpStr != '\0')
+         { /*If: input is non-numeric or to large*/
             fprintf(
                stderr,
-               "can not do both -divy and -add%s",
+               "-add %s is non-numeric or to large%s",
+               argAryStr[siArg],
                str_endLine
             );
             goto err_fun03_sec03;
-         } /*If: doing both add and divy*/
-
-         else
-            *cmdFlagsSCPtr |= def_addCmd_mainAcnt;
+         } /*If: input is non-numeric or to large*/
 
          if(sumDefBl)
          { /*If: need to remove default sum cmd*/
@@ -1095,18 +1118,26 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: wants to do a divy*/
-         if(*cmdFlagsSCPtr & def_addCmd_mainAcnt)
-         { /*If: doing both add and divy*/
+         *cmdFlagsSCPtr |= def_divyCmd_mainAcnt;
+         ++siArg;
+         tmpStr = (signed char *) argAryStr[siArg];
+
+         tmpStr +=
+            strToF_base10str(
+               tmpStr,
+               divyAmountFPtr
+            );
+
+         if(*tmpStr != '\0')
+         { /*If: input is non-numeric or to large*/
             fprintf(
                stderr,
-               "can not do both -divy and -add%s",
+               "-divy %s is non-numeric or to large%s",
+               argAryStr[siArg],
                str_endLine
             );
             goto err_fun03_sec03;
-         } /*If: doing both add and divy*/
-
-         else
-            *cmdFlagsSCPtr |= def_divyCmd_mainAcnt;
+         } /*If: input is non-numeric or to large*/
 
          if(sumDefBl)
          { /*If: need to remove default sum cmd*/
@@ -1264,38 +1295,6 @@ input_mainAcnt(
          ++siArg;
          *childStrPtr = (signed char *) argAryStr[siArg];
       }  /*Else If: child account input*/
-
-      /*++++++++++++++++++++++++++++++++++++++++++++++++\
-      + Fun03 Sec02 Sub03 Cat03:
-      +  - amount to divy/add input
-      \++++++++++++++++++++++++++++++++++++++++++++++++*/
-
-      else if(
-         ! eqlNull_ulCp(
-            (signed char *) "-amount",
-            (signed char *) argAryStr[siArg]
-         )
-      ){ /*Else If: amount*/
-         ++siArg;
-         tmpStr = (signed char *) argAryStr[siArg];
-
-         tmpStr +=
-            strToF_base10str(
-               tmpStr,
-               amountFPtr
-            );
-
-         if(*tmpStr != '\0')
-         { /*If: input is non-numeric or to large*/
-            fprintf(
-               stderr,
-               "-amount %s is non-numeric or to large%s",
-               argAryStr[siArg],
-               str_endLine
-            );
-            goto err_fun03_sec03;
-         } /*If: input is non-numeric or to large*/
-      }  /*Else If: amount*/
 
       /*++++++++++++++++++++++++++++++++++++++++++++++++\
       + Fun03 Sec02 Sub03 Cat04:
@@ -1823,7 +1822,8 @@ main(
    signed char *childStr = 0; /*child account*/
 
    signed char cmdFlagsSC = def_sumCmd_mainAcnt;
-   float amountF = 0;         /*amount to transfer*/
+   float addAmountF = 0;         /*amount to transfer*/
+   float divyAmountF = 0;        /*amount to transfer*/
    signed char ghostBl = def_ghost_defsAcnt;
    signed long delIndexSL = 0;
 
@@ -1914,7 +1914,8 @@ main(
          &cmdFlagsSC,   /*commands to run*/
          &parStr,       /*parent account*/
          &childStr,     /*child account*/
-         &amountF,      /*amount to transfer*/
+         &addAmountF,   /*amount to transfer*/
+         &divyAmountF,  /*amount to transfer*/
          &yearSS,       /*year for add/divy*/
          &monthSC,      /*month for add/divy*/
          &daySC,        /*day for add/divy*/
@@ -2237,7 +2238,7 @@ main(
             yearSS,
             monthSC,
             daySC,
-            amountF,
+            addAmountF,
             commentStr,
             ghostBl,
             percisionUC,
@@ -2261,18 +2262,16 @@ main(
       { /*Else If: date error (or child error for mock)*/
          fprintf(
             stderr,
-            "date to add to -file %s is out of range%s",
-            acntFileStr,
+            "likely missing -par or -child, but also%s",
             str_endLine
          );
 
-         if(cmdFlagsSC & def_mockCmd_mainAcnt)
-            fprintf(
-               stderr,
-               "  or (pretend only), no -child %s%s",
-               childStr,
-               str_endLine
-            );
+         fprintf(
+            stderr,
+            "  could be bad date%s",
+            str_endLine
+         );
+
          goto err_main_sec05;
       } /*Else If: date error (or child error for mock)*/
    } /*If: doing addition*/
@@ -2294,7 +2293,7 @@ main(
          (unsigned long)
          divy_st_acnt(
             &acntStackST,
-            amountF,
+            divyAmountF,
             divyBuffHeapStr,
             commentStr,
             ghostBl,

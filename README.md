@@ -171,6 +171,12 @@ To start an interactive sesssion
     opening. If you use a differnt file, then you will
     have a new file.
 
+**WARNING**:
+  never do `acnt -file account.tsv > account.tsv`, which
+  will first blank the input/output account.tsv file
+  before account can open it. Instead
+  do `acnt -file account.tsv -out account.tsv`.
+
 If you want to check the result of an trasanction before
   making it, you can use the `-pretend` option (does not
   apply to `-prompt`), which will print out a fake
@@ -281,3 +287,12 @@ Acnt applies commands in a certain order. The first
   not run both), then print, then sum, and if not
   using `-prompt` the write command. The very last command
   to fire is the `-prompt` command.
+
+# Updates:
+
+- 2025-04-03:
+  - fixed minor error message issue when forgot parent or
+    child account with add
+  - removed `-amount value` flag adn changed `-add`
+    and `-divy` to take in the transaction amount, so
+    you can use both add and divy in same run
