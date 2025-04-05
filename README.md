@@ -170,6 +170,8 @@ To start an interactive sesssion
   - notice, we are saving to the same account we are
     opening. If you use a differnt file, then you will
     have a new file.
+  - always have an older account file just in case you
+    wipe our your new file
 
 **WARNING**:
   never do `acnt -file account.tsv > account.tsv`, which
@@ -178,7 +180,7 @@ To start an interactive sesssion
   do `acnt -file account.tsv -out account.tsv`.
 
 If you want a summary of your transactions in 2024, you
-  can do `acnt -file account.tsv -print -end-year 2024 | cut -f 2-9 | acnt -file -`.
+  can do `acnt -file account.tsv -print -end-year 2024 | acnt -file -`.
   Needing cut is not best solution, but I want to keep the
   index's for `-del` (`-del index`).
 
@@ -295,6 +297,9 @@ Acnt applies commands in a certain order. The first
 
 # Updates:
 
+- 2025-04-04:
+  - acnt now reconginizes, and ignores the index column at
+    start made from `acnt -file account.tsv -print`
 - 2025-04-03:
   - fixed minor error message issue when forgot parent or
     child account with add

@@ -1499,36 +1499,38 @@ readFile_acnt(
    signed long indexSL = 0;
    signed long lineSL = 0;
 
+   signed char indexColBl = 0; /*index column in header*/
+
    /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\
    ^ Fun18 Sec02:
    ^   - read file
    ^   o fun18 sec02 sub01:
-   ^     - move past header + start file read loop
+   ^     - move past header and check if index column
    ^   o fun18 sec02 sub02:
-   ^     - move past initial white space + allocate
-   ^   o fun18 sec02 sub03:
-   ^     - read in parent account id
+   ^     - move past initial white space + allocate + loop
    ^   o fun18 sec02 sub04:
-   ^     - read in child account id
+   ^     - read in parent account id
    ^   o fun18 sec02 sub05:
-   ^     - get year
+   ^     - read in child account id
    ^   o fun18 sec02 sub06:
-   ^     - get month
+   ^     - get year
    ^   o fun18 sec02 sub07:
-   ^     - get day
+   ^     - get month
    ^   o fun18 sec02 sub08:
-   ^     - get transaction amount
+   ^     - get day
    ^   o fun18 sec02 sub09:
+   ^     - get transaction amount
+   ^   o fun18 sec02 sub01:
    ^     - skip total (re-calculate)
-   ^   o fun18 sec02 sub10:
-   ^     - get comment
    ^   o fun18 sec02 sub11:
+   ^     - get comment
+   ^   o fun18 sec02 sub12:
    ^     - move to next line
    \<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
 
    /*****************************************************\
    * Fun18 Sec02 Sub01:
-   *   - move past header + start file read loop
+   *   - move past header and check if index column
    \*****************************************************/
 
    tmpStr =
@@ -1542,7 +1544,31 @@ readFile_acnt(
    if(! tmpStr)
       goto noFile_fun18_sec05; /*nothing in file*/
 
+
+   while(*tmpStr < 33)
+   { /*Loop: move past white space*/
+      if(*tmpStr == '\0')
+         goto noFile_fun18_sec05; /*nothing in file*/
+      ++tmpStr;
+   } /*Loop: move past white space*/
+
+   if(
+         (tmpStr[0] & ~32) == 'I'
+      && (tmpStr[1] & ~32) == 'N'
+      && (tmpStr[2] & ~32) == 'D'
+      && (tmpStr[3] & ~32) == 'E'
+      && (tmpStr[4] & ~32) == 'X'
+      && tmpStr[5] < 33
+   ) indexColBl = 1;
+     /*first column has index's*/
+
+
    ++lineSL;
+
+   /*****************************************************\
+   * Fun18 Sec02 Sub02:
+   *   - move past initial white space + allocate + loop
+   \*****************************************************/
 
    while(
       fgets(
@@ -1552,10 +1578,6 @@ readFile_acnt(
       )
    ){ /*Loop: read in file*/
 
-      /**************************************************\
-      * Fun18 Sec02 Sub02:
-      *   - move past initial white space + allocate
-      \**************************************************/
 
       /*move past any initial white space*/
       posUS = 0;
@@ -1567,7 +1589,7 @@ readFile_acnt(
          ++posUS;
       } /*Loop: find start of entry*/
 
-      if(buffStr[posUS] < 32)
+      if(buffStr[posUS] < 33)
          continue; /*blank line*/
 
       /*make sure have enough memory for this entry*/
@@ -1583,15 +1605,37 @@ readFile_acnt(
 
       /**************************************************\
       * Fun18 Sec02 Sub03:
+      *   - move past index column (if have one)
+      \**************************************************/
+
+      if(indexColBl)
+      { /*If: have index column*/
+         while(buffStr[posUS] > 32)
+            ++posUS;
+
+         while(buffStr[posUS] < 33)
+         { /*Loop: move to parent entry*/
+            if(buffStr[posUS] == '\0')
+               break;
+            ++posUS;
+         } /*Loop: move to parent entry*/
+
+         if(buffStr[posUS] < 33)
+            goto fileErr_fun18_sec05;
+            /*line only had index entry*/
+      } /*If: have index column*/
+     
+      /**************************************************\
+      * Fun18 Sec02 Sub04:
       *   - read in parent account id
-      *   o fun18 sec02 sub03 cat01:
+      *   o fun18 sec02 sub04 cat01:
       *     - find length of parent account id
-      *   o fun18 sec02 sub03 cat02:
+      *   o fun18 sec02 sub04 cat02:
       *     - find parent account and copy if new
       \**************************************************/
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
-      + Fun18 Sec02 Sub03 Cat01:
+      + Fun18 Sec02 Sub04 Cat01:
       +   - find length of parent account id
       \+++++++++++++++++++++++++++++++++++++++++++++++++*/
 
@@ -1620,7 +1664,7 @@ readFile_acnt(
       buffStr[endUS] = '\0';
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
-      + Fun18 Sec02 Sub03 Cat02:
+      + Fun18 Sec02 Sub04 Cat02:
       +   - find parent account and copy if new
       \+++++++++++++++++++++++++++++++++++++++++++++++++*/
 
@@ -1644,16 +1688,16 @@ readFile_acnt(
       posUS = endUS + 1;
 
       /**************************************************\
-      * Fun18 Sec02 Sub04:
+      * Fun18 Sec02 Sub05:
       *   - read in child account id
-      *   o fun18 sec02 sub04 cat01:
+      *   o fun18 sec02 sub05 cat01:
       *     - find length of chile account id
-      *   o fun18 sec02 sub04 cat02:
+      *   o fun18 sec02 sub05 cat02:
       *     - find chile account and copy if new
       \**************************************************/
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
-      + Fun18 Sec02 Sub04 Cat01:
+      + Fun18 Sec02 Sub05 Cat01:
       +   - find length of child account id
       \+++++++++++++++++++++++++++++++++++++++++++++++++*/
 
@@ -1690,7 +1734,7 @@ readFile_acnt(
       buffStr[endUS] = '\0';
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
-      + Fun18 Sec02 Sub04 Cat02:
+      + Fun18 Sec02 Sub05 Cat02:
       +   - find child account and copy if new
       \+++++++++++++++++++++++++++++++++++++++++++++++++*/
 
@@ -1711,7 +1755,7 @@ readFile_acnt(
       posUS = endUS + 1;
 
       /**************************************************\
-      * Fun18 Sec02 Sub05:
+      * Fun18 Sec02 Sub06:
       *   - get year
       \**************************************************/
 
@@ -1741,7 +1785,7 @@ readFile_acnt(
          /*else end of line or weird asscii*/
 
       /**************************************************\
-      * Fun18 Sec02 Sub06:
+      * Fun18 Sec02 Sub07:
       *   - get month
       \**************************************************/
 
@@ -1771,7 +1815,7 @@ readFile_acnt(
          /*else end of line or weird asscii*/
 
       /**************************************************\
-      * Fun18 Sec02 Sub07:
+      * Fun18 Sec02 Sub08:
       *   - get day
       \**************************************************/
 
@@ -1801,7 +1845,7 @@ readFile_acnt(
          /*else end of line or weird asscii*/
 
       /**************************************************\
-      * Fun18 Sec02 Sub08:
+      * Fun18 Sec02 Sub09:
       *   - get transaction amount
       \**************************************************/
 
@@ -1831,7 +1875,7 @@ readFile_acnt(
          /*else end of line or weird asscii*/
 
       /**************************************************\
-      * Fun18 Sec02 Sub09:
+      * Fun18 Sec02 Sub10:
       *   - skip total column (re-calcuate)
       \**************************************************/
 
@@ -1853,7 +1897,7 @@ readFile_acnt(
       /*at this point there are no more required entries*/
 
       /**************************************************\
-      * Fun18 Sec02 Sub10:
+      * Fun18 Sec02 Sub11:
       *   - get comment
       \**************************************************/
 
@@ -1924,7 +1968,7 @@ readFile_acnt(
       } /*Else: have comment*/
 
       /**************************************************\
-      * Fun18 Sec02 Sub11:
+      * Fun18 Sec02 Sub12:
       *   - move to next line
       \**************************************************/
 
