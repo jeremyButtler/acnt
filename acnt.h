@@ -588,6 +588,8 @@ pIndex_st_acnt(
 |     o 2 element array [first day, last day]
 |   - persisionUC:
 |     o number decimals to print (prentend/mock delete)
+|   - sumBl:
+|     o print sums of searched entries instead of entries
 |   - outFILE:
 |     o FILE pointer to print search to
 | Output:
@@ -607,6 +609,7 @@ pEntries_st_acnt(
    signed char monthArySC[],  /*month to find*/
    signed char dayArySC[],    /*day to find*/
    unsigned char percisionUC, /*amount of percision*/
+   signed char sumBl,         /*print sums, not entries*/
    void *outFILE              /*print accounts to*/
 );
 

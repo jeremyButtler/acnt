@@ -1333,8 +1333,10 @@ pEntries_cmdAcnt(
    '   o fun03 sec07:
    '     - get day of transaction
    '   o fun03 sec08:
-   '     - print entries
+   '     - get if summing entries
    '   o fun03 sec09:
+   '     - print entries
+   '   o fun03 sec10:
    '     - return result
    \~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
@@ -1354,6 +1356,7 @@ pEntries_cmdAcnt(
    signed char monthArySC[2];
    signed char dayArySC[2];
 
+   signed char sumBl = 0;
    signed char *tmpStr = 0;
    signed short tmpSS = 0;
 
@@ -1440,7 +1443,7 @@ pEntries_cmdAcnt(
       else if(
              (tmpStr[0] & ~32) == 'Q'
           && tmpStr[1] < 33
-      ) goto quite_fun03_sec09;
+      ) goto quite_fun03_sec10;
 
       else if(
              tmpStr[0] == '-'
@@ -1653,7 +1656,7 @@ pEntries_cmdAcnt(
       else if(
              (tmpStr[0] & ~32) == 'Q'
           && tmpStr[1] < 33
-      ) goto quite_fun03_sec09;
+      ) goto quite_fun03_sec10;
 
       else if(
              tmpStr[0] == '-'
@@ -1859,7 +1862,7 @@ pEntries_cmdAcnt(
       else if(
              tmpStr[0] == 'q'
           && tmpStr[1] < 33
-      ) goto quite_fun03_sec09;
+      ) goto quite_fun03_sec10;
 
       /**************************************************\
       * Fun03 Sec05 Sub02:
@@ -2095,7 +2098,7 @@ pEntries_cmdAcnt(
       else if(
              tmpStr[0] == 'q'
           && tmpStr[1] < 33
-      ) goto quite_fun03_sec09;
+      ) goto quite_fun03_sec10;
 
       /**************************************************\
       * Fun03 Sec06 Sub02:
@@ -2361,7 +2364,7 @@ pEntries_cmdAcnt(
       else if(
              tmpStr[0] == 'q'
           && tmpStr[1] < 33
-      ) goto quite_fun03_sec09;
+      ) goto quite_fun03_sec10;
 
       /**************************************************\
       * Fun03 Sec07 Sub02:
@@ -2572,6 +2575,77 @@ pEntries_cmdAcnt(
 
    /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\
    ^ Fun03 Sec08:
+   ^   - get if summing entries
+   \<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
+
+   tmpStr = inStr;
+   *tmpStr = ' ';
+
+   while(*tmpStr != '\0')
+   { /*Loop: find if summing entries*/
+      dayArySC[0] = 0;
+      dayArySC[1] = 0;
+
+      printf(
+         "day (print sums [no]; (yes/no): q to quite):%s",
+         str_endLine
+      );
+
+      tmpStr =
+         (signed char *)
+         fgets(
+            (char *) inStr,
+            def_inBuffLen_cmdAcnt,
+            stdin
+         );
+
+      if(
+            ! tmpStr
+         || *tmpStr == '\0'
+         || *tmpStr == '\n'
+         || *tmpStr == '\r'
+      ) break;
+
+      else if(
+             tmpStr[0] == 'q'
+          && tmpStr[1] < 33
+      ) goto quite_fun03_sec10;
+
+      else if(*tmpStr == 'y')
+      { /*Else If: printing sums*/
+         sumBl = 1;
+         break;
+      } /*Else If: printing sums*/
+
+      else if(*tmpStr == 'n')
+      { /*Else If: printing sums*/
+         sumBl = 0;
+         break;
+      } /*Else If: printing sums*/
+
+      else
+         fprintf(
+            stdout,
+            "input y (yes) or n (no)%s",
+            str_endLine
+         );
+   } /*Loop: find if summing entries*/
+
+   if(sumBl)
+      fprintf(
+         stdout,
+         "summing found entries%s",
+         str_endLine
+      );
+   if(sumBl)
+      fprintf(
+         stdout,
+         "printing (not summing) found entries%s",
+         str_endLine
+      );
+ 
+   /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\
+   ^ Fun03 Sec09:
    ^   - print entries
    \<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
 
@@ -2584,6 +2658,7 @@ pEntries_cmdAcnt(
          monthArySC,
          dayArySC,
          percisionUC,
+         sumBl,
          stdout
       );
 
@@ -2657,13 +2732,13 @@ pEntries_cmdAcnt(
     } /*Else: could not find entry*/
 
    /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\
-   ^ Fun03 Sec09:
+   ^ Fun03 Sec10:
    ^   - return result
    \<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
 
    return 0;
 
-   quite_fun03_sec09:;
+   quite_fun03_sec10:;
       return 0;
 } /*pEntries_cmdAcnt*/
 

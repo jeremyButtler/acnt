@@ -165,6 +165,9 @@ To start an interactive sesssion
   do `acnt -file account.tsv -print -par savings`
 - To print all saving funds accross all parent accounts
   do `acnt -file account.tsv -print -child savings`
+- To print a summary of all saving funds accross all
+  parent accounts
+  do `acnt -file account.tsv -print sum -child savings`
 - To acutally save an account you will need to
   do `acnt -file account.tsv -add -amount 100 -par savings -child savings -out account.tsv`
   - notice, we are saving to the same account we are
@@ -178,11 +181,6 @@ To start an interactive sesssion
   will first blank the input/output account.tsv file
   before account can open it. Instead
   do `acnt -file account.tsv -out account.tsv`.
-
-If you want a summary of your transactions in 2024, you
-  can do `acnt -file account.tsv -print -end-year 2024 | acnt -file -`.
-  Needing cut is not best solution, but I want to keep the
-  index's for `-del` (`-del index`).
 
 If you want to check the result of an trasanction before
   making it, you can use the `-pretend` option (does not
@@ -297,6 +295,14 @@ Acnt applies commands in a certain order. The first
 
 # Updates:
 
+- 2025-04-06:
+  - add in sum command for print `-print sum`
+  - changed `-sum` to print all entries as tsv
+    - no longer break between child account totals and
+      parent account totals
+    - parent account totals sum marked with `NA`
+   - added in all accounts total for `-sum` and the
+     `-print-sum` commands
 - 2025-04-04:
   - acnt now reconginizes, and ignores the index column at
     start made from `acnt -file account.tsv -print`

@@ -49,9 +49,11 @@
 #define def_addCmd_mainAcnt 2
 #define def_divyCmd_mainAcnt 4
 #define def_pEntriesCmd_mainAcnt 8
-#define def_sumCmd_mainAcnt 16
-#define def_promptCmd_mainAcnt 32
-#define def_mockCmd_mainAcnt 64
+#define def_entriesSum_mainAcnt 16
+   /*sum all printed entries*/
+#define def_sumCmd_mainAcnt 32
+#define def_promptCmd_mainAcnt 64
+#define def_mockCmd_mainAcnt 128
 
 #define def_stdinBuff_mainAcnt 1024
 
@@ -401,13 +403,31 @@ phelp_mainAcnt(
 
    fprintf(
       (FILE *) outFILE,
-      "    -print: [Optional; NA]%s",
+      "    -print: [Optional; entry]%s",
       str_endLine
    );
 
    fprintf(
       (FILE *) outFILE,
       "      o print accounts by account values%s",
+      str_endLine
+   );
+
+   fprintf(
+      (FILE *) outFILE,
+      "        * `-print sum` prints a summary (-sum)%s",
+      str_endLine
+   );
+
+   fprintf(
+      (FILE *) outFILE,
+      "        * `-print entry` prints found entries%s",
+      str_endLine
+   );
+
+   fprintf(
+      (FILE *) outFILE,
+      "        * `-print` is same as `-print entry`%s",
       str_endLine
    );
 
@@ -1188,6 +1208,42 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: user wanted to search for entries*/
+         if(siArg + 1 < numArgsSI)
+         { /*If: have more arguments*/
+            if(
+                  (argAryStr[siArg + 1][0] & ~ 32) == 'S' 
+               && (argAryStr[siArg + 1][1] & ~ 32) == 'U' 
+               && (argAryStr[siArg + 1][2] & ~ 32) == 'M' 
+               && (argAryStr[siArg + 1][3] & ~ 32) == '\0' 
+            ){ /*If: sum requested*/
+               *cmdFlagsSCPtr = def_entriesSum_mainAcnt;
+               ++siArg;
+            }  /*If: sum requested*/
+
+            else if(
+                  (argAryStr[siArg + 1][0] & ~ 32) == 'E' 
+               && (argAryStr[siArg + 1][1] & ~ 32) == 'N' 
+               && (argAryStr[siArg + 1][2] & ~ 32) == 'T' 
+               && (argAryStr[siArg + 1][3] & ~ 32) == 'R' 
+               && (argAryStr[siArg + 1][4] & ~ 32) == 'Y' 
+               && (argAryStr[siArg + 1][5] & ~ 32) == '\0' 
+            ){ /*Else If: entry print requested*/
+               *cmdFlagsSCPtr &= ~def_entriesSum_mainAcnt;
+               ++siArg;
+            }  /*Else If: entry print requested*/
+
+            else if(argAryStr[siArg + 1][0] != '-')
+            { /*Else If: invalid input*/
+               fprintf(
+                  stderr,
+                  "-print only supports sum or entry%s",
+                  str_endLine
+               );
+
+               goto err_fun03_sec03;
+            } /*Else If: invalid input*/
+         } /*If: have more arguments*/
+
          *cmdFlagsSCPtr |= def_pEntriesCmd_mainAcnt;
 
          if(sumDefBl)
@@ -1202,7 +1258,10 @@ input_mainAcnt(
             (signed char *) "-no-print",
             (signed char *) argAryStr[siArg]
          )
-      ) *cmdFlagsSCPtr &= (~def_pEntriesCmd_mainAcnt);
+      ){ /*Else If: not printing entries*/
+        *cmdFlagsSCPtr &= ~def_pEntriesCmd_mainAcnt;
+        *cmdFlagsSCPtr &= ~def_entriesSum_mainAcnt;
+      }  /*Else If: not printing entries*/
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
       + Fun03 Sec02 Sub02 Cat06:
@@ -2358,6 +2417,7 @@ main(
             monthArySC,
             dayArySC,
             percisionUC,
+            !!(cmdFlagsSC & def_entriesSum_mainAcnt),
             pOutFILE
          );
 

@@ -3180,6 +3180,8 @@ pIndex_st_acnt(
 |     o 2 element array [first day, last day]
 |   - persisionUC:
 |     o number decimals to print (prentend/mock delete)
+|   - sumBl:
+|     o print sums of searched entries instead of entries
 |   - outFILE:
 |     o FILE pointer to print search to
 | Output:
@@ -3199,6 +3201,7 @@ pEntries_st_acnt(
    signed char monthArySC[],  /*month to find*/
    signed char dayArySC[],    /*day to find*/
    unsigned char percisionUC, /*amount of percision*/
+   signed char sumBl,         /*print sums, not entries*/
    void *outFILE              /*print accounts to*/
 ){ /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\
    ' Fun22 TOC:
@@ -3209,7 +3212,7 @@ pEntries_st_acnt(
    '     - get parent/child index and get starting index
    '   o fun22 sec04:
    '     - print entries
-   '   o fun22 sec05:
+   '   o fun22 sec06:
    '     - clean up and return 
    \~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
@@ -3222,7 +3225,13 @@ pEntries_st_acnt(
 
    signed long indexSL = 0;
    signed long slTotal = 0; /*index at in total*/
-   float *totalAryF = 0;
+   float totalF = 0;
+
+   float *totalHeapAryF = 0;
+   float *parTotalHeapAryF = 0;
+   signed char *hitChildHeapAryBl = 0;
+   signed char *hitHeapAryBl = 0;
+      /*for printing sums; marks parent hits*/
 
    signed char tranStr[32]; /*for printing transaction*/
    signed char totalStr[32]; /*for printing total*/
@@ -3238,18 +3247,46 @@ pEntries_st_acnt(
    /*bit inefficent, but am realing on user not having
    `   many accounts
    */
+   if(sumBl)
+   { /*If: printing a list of sums*/
+      hitHeapAryBl =
+         calloc(
+            acntSTPtr->numParUS,
+            sizeof(signed char)
+         );
+      if(! hitHeapAryBl)
+         goto memErr_fun22_sec06;
+
+      parTotalHeapAryF =
+         calloc(
+            acntSTPtr->numParUS,
+            sizeof(float)
+         );
+      if(! parTotalHeapAryF)
+         goto memErr_fun22_sec06;
+
+   } /*If: printing a list of sums*/
+
    indexSL = acntSTPtr->numParUS;
    indexSL *= acntSTPtr->numChildUS;
    indexSL += acntSTPtr->numChildUS;
 
-   totalAryF =
+   if(sumBl)
+   { /*If: printing sums*/
+      hitChildHeapAryBl =
+         calloc(indexSL, sizeof(signed char));
+      if(! hitHeapAryBl)
+         goto memErr_fun22_sec06;
+   } /*If: printing sums*/
+
+   totalHeapAryF =
       calloc(
          indexSL,
          sizeof(float)
       ); /*maximum memory possible*/
 
-   if(! totalAryF)
-      goto memErr_fun22_sec05;
+   if(! totalHeapAryF)
+      goto memErr_fun22_sec06;
 
    /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\
    ^ Fun22 Sec03:
@@ -3267,7 +3304,7 @@ pEntries_st_acnt(
 
 
       if(parIndexSI < 0)
-         goto noEntries_fun22_sec05;
+         goto noEntries_fun22_sec06;
 
       parIndexSI = acntSTPtr->parToNumAryUS[parIndexSI];
    } /*If: have parend id*/
@@ -3284,7 +3321,7 @@ pEntries_st_acnt(
 
 
       if(childIndexSI < 0)
-         goto noEntries_fun22_sec05;
+         goto noEntries_fun22_sec06;
 
       childIndexSI =
          acntSTPtr->childToNumAryUS[childIndexSI];
@@ -3307,16 +3344,25 @@ pEntries_st_acnt(
    \*****************************************************/
 
    /*printing header for user*/
-   fprintf(
-      (FILE *) outFILE,
-      "index\tpar\tchild\tyear\tmonth\tday\tamount\ttotal"
-   );
+   if(sumBl)
+      fprintf(
+         (FILE *) outFILE,
+         "parent\tchild\tamount%s",
+         str_endLine
+      );
+   else
+   { /*Else: print entry header*/
+      fprintf(
+         (FILE *) outFILE,
+         "index\tpar\tchild\tyear\tmonth\tday\tamount"
+      );
 
-   fprintf(
-      (FILE *) outFILE,
-      "\treason%s",
-      str_endLine
-   );
+      fprintf(
+         (FILE *) outFILE,
+         "\total\treason%s",
+         str_endLine
+      );
+   } /*Else: print entry header*/
 
    indexSL = 0;
 
@@ -3336,8 +3382,8 @@ pEntries_st_acnt(
       if(
             childStr
          &&
-                childIndexSI
-            !=  (signed int) acntSTPtr->childAryUS[indexSL]
+               childIndexSI
+            != (signed int) acntSTPtr->childAryUS[indexSL]
       ) continue; /*if different account*/
 
 
@@ -3427,42 +3473,61 @@ pEntries_st_acnt(
                ]
             );
       else
+      { /*Else: user wanted sums printed*/
          tmpChildStr = childStr;
+         totalHeapAryF[slTotal] +=
+            acntSTPtr->tranAryF[indexSL];
+      } /*Else: user wanted sums printed*/
+
+
+      if(sumBl)
+      { /*If: printing sums (not entries)*/
+         slTotal = acntSTPtr->parAryUS[indexSL];
+         hitHeapAryBl[slTotal] = 1;
+         parTotalHeapAryF[slTotal] +=
+            acntSTPtr->tranAryF[indexSL];
+      } /*If: printing sums (not entries)*/
 
       slTotal = acntSTPtr->parAryUS[indexSL];
       slTotal *= acntSTPtr->numChildUS;
       slTotal += acntSTPtr->childAryUS[indexSL];
-      totalAryF[slTotal] += acntSTPtr->tranAryF[indexSL];
+      totalHeapAryF[slTotal] +=
+         acntSTPtr->tranAryF[indexSL];
 
-      /*floats are not 100% accurate, so need to do
-      `   some rounding
-      */
-      double_numToStr(
-         tranStr,
-         acntSTPtr->tranAryF[indexSL],
-         percisionUC
-      ); /*convert transaction to string*/
+      if(sumBl)
+         hitChildHeapAryBl[slTotal] = 1;
+      else
+      { /*Else: printing entries*/
+         /*floats are not 100% accurate, so need to do
+         `   some rounding
+         */
+         double_numToStr(
+            tranStr,
+            acntSTPtr->tranAryF[indexSL],
+            percisionUC
+         ); /*convert transaction to string*/
 
-      double_numToStr(
-         totalStr,
-         totalAryF[slTotal],
-         percisionUC
-      ); /*covert total to string*/
-      
-      fprintf(
-         (FILE *) outFILE,
-         "%li\t%s\t%s\t%i\t%02i\t%02i\t%s\t%s\t%s%s",
-         indexSL,
-         tmpParStr,
-         tmpChildStr,
-         acntSTPtr->yearArySS[indexSL],
-         acntSTPtr->monthArySC[indexSL],
-         acntSTPtr->dayArySC[indexSL],
-         tranStr,
-         totalStr,
-         acntSTPtr->commentAryST->strAry[indexSL],
-         str_endLine
-      );
+         double_numToStr(
+            totalStr,
+            totalHeapAryF[slTotal],
+            percisionUC
+         ); /*covert total to string*/
+         
+         fprintf(
+            (FILE *) outFILE,
+            "%li\t%s\t%s\t%i\t%02i\t%02i\t%s\t%s\t%s%s",
+            indexSL,
+            tmpParStr,
+            tmpChildStr,
+            acntSTPtr->yearArySS[indexSL],
+            acntSTPtr->monthArySC[indexSL],
+            acntSTPtr->dayArySC[indexSL],
+            tranStr,
+            totalStr,
+            acntSTPtr->commentAryST->strAry[indexSL],
+            str_endLine
+         );
+      } /*Else: printing entries*/
 
       tmpParStr = 0;
       tmpChildStr = 0;
@@ -3470,24 +3535,159 @@ pEntries_st_acnt(
 
    /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\
    ^ Fun22 Sec05:
+   ^   - print sums if requested
+   ^   o fun22 sec05 sub01:
+   ^     - print child account sums (if sumrequested)
+   ^   o fun22 sec05 sub02:
+   ^     - print parent account sums (if sum requested)
+   \>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+
+   /*****************************************************\
+   * Fun22 Sec05 Sub01:
+   *   - print child account sums (if sum requested)
+   \*****************************************************/
+
+   if(sumBl)
+   { /*If: printing a summary*/
+      for(
+         childIndexSI = 0;
+         childIndexSI <
+            (signed int) acntSTPtr->numChildUS;
+         ++childIndexSI
+      ){ /*Loop: print sum for each child account*/
+
+         for(
+            parIndexSI = 0;
+            parIndexSI <
+               (signed long) acntSTPtr->numParUS;
+            ++parIndexSI
+          ){ /*Loop: though all parent accounts*/
+
+             indexSL = (signed long) parIndexSI;
+             indexSL *=
+                (signed long) acntSTPtr->numChildUS;
+             indexSL += (signed long) childIndexSI;
+
+             if(! hitChildHeapAryBl[indexSL])
+                continue; /*account not in hit list*/
+
+             double_numToStr(
+                totalStr,
+                totalHeapAryF[indexSL],
+                percisionUC
+             ); /*covert total to string*/
+
+             fprintf(
+                (FILE *) outFILE,
+                "%s\t%s\t%s%s",
+                get_strAry(
+                   acntSTPtr->uniqParStr,
+                   acntSTPtr->numToParAryUS[parIndexSI]
+                ),
+                get_strAry(
+                   acntSTPtr->uniqChildStr,
+                   acntSTPtr->numToChildAryUS[
+                      childIndexSI
+                   ]
+                ),
+                totalStr,
+                str_endLine
+             ); /*print account name and total*/
+          }  /*Loop: though all parent accounts*/
+      }  /*Loop: print sum for each child account*/
+
+      free(totalHeapAryF);
+      totalHeapAryF = 0;
+      free(hitChildHeapAryBl);
+      hitChildHeapAryBl = 0;
+
+      /**************************************************\
+      * Fun22 Sec05 Sub02:
+      *   - print parent account sums (if sum requested)
+      \**************************************************/
+
+      slTotal = 0;
+
+      for(
+         parIndexSI = 0;
+         parIndexSI < (signed long) acntSTPtr->numParUS;
+         ++parIndexSI
+       ){ /*Loop: print sums*/
+          if(! hitHeapAryBl[parIndexSI])
+             continue; /*parent not in found list*/
+
+          totalF += parTotalHeapAryF[parIndexSI];
+
+          double_numToStr(
+             totalStr,
+             parTotalHeapAryF[parIndexSI],
+             percisionUC
+          ); /*covert total to string*/
+
+          fprintf(
+             (FILE *) outFILE,
+             "%s\tNA\t%s%s",
+             get_strAry(
+                acntSTPtr->uniqParStr,
+                acntSTPtr->numToParAryUS[parIndexSI]
+             ),
+             totalStr,
+             str_endLine
+          ); /*print account name and total*/
+       }  /*Loop: print sums*/
+
+      free(parTotalHeapAryF);
+      parTotalHeapAryF = 0;
+      free(hitHeapAryBl);
+      hitHeapAryBl = 0;
+
+      double_numToStr(
+         totalStr,
+         totalF,
+         percisionUC
+      ); /*covert total to string*/
+
+      fprintf(
+         (FILE *) outFILE,
+         "total\tNA\t%s%s",
+         totalStr,
+         str_endLine
+      );
+   } /*If: printing a summary*/
+
+   /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\
+   ^ Fun22 Sec06:
    ^   - clean up and return 
    \>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 
    errSC = 0;
-   goto ret_fun22_sec05;
+   goto ret_fun22_sec06;
 
-   memErr_fun22_sec05:;
+   memErr_fun22_sec06:;
       errSC = def_memErr_acnt;
-      goto ret_fun22_sec05;
+      goto ret_fun22_sec06;
 
-   noEntries_fun22_sec05:;
+   noEntries_fun22_sec06:;
       errSC = def_missingEntry_acnt;
-      goto ret_fun22_sec05;
+      goto ret_fun22_sec06;
 
-   ret_fun22_sec05:;
-      if(totalAryF)
-         free(totalAryF);
-      totalAryF = 0;
+   ret_fun22_sec06:;
+      if(totalHeapAryF)
+         free(totalHeapAryF);
+      totalHeapAryF = 0;
+
+      if(parTotalHeapAryF)
+         free(parTotalHeapAryF);
+      parTotalHeapAryF = 0;
+
+      if(hitHeapAryBl)
+         free(hitHeapAryBl);
+      hitHeapAryBl = 0;
+
+      if(hitChildHeapAryBl)
+         free(hitChildHeapAryBl);
+      hitChildHeapAryBl = 0;
+
       return errSC;
 } /*pEntries_st_acnt*/
 
@@ -3525,6 +3725,7 @@ pSum_st_acnt(
    signed long slTotal = 0; /*index at in total*/
 
    float parSumF = 0;       /*for parent account sum*/
+   float totalF = 0;        /*total for all accounts*/
    float *totalAryF = 0;
    signed char *pAryBl = 0; /*marks if had sum*/
 
@@ -3650,19 +3851,14 @@ pSum_st_acnt(
    ^     - print parent totals (loop)
    ^   o fun23 sec05 sub03:
    ^     - print final parent total (not printed in loop)
+   ^   o fun23 sec05 sub04:
+   ^     - print total for all parent accounts
    \>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 
    /*****************************************************\
    * Fun23 Sec05 Sub01:
    *   - setup for parent total printing + print header
    \*****************************************************/
-
-   fprintf(
-      (FILE *) outFILE,
-      "%sparent account totals%s",
-      str_endLine,
-      str_endLine
-   ); /*print parent account headedr*/
 
    slTotal = (signed long) acntSTPtr->numParUS;
    slTotal *= (signed long) acntSTPtr->numChildUS;
@@ -3694,7 +3890,7 @@ pSum_st_acnt(
 
             fprintf(
                (FILE *) outFILE,
-               "%s\t%s%s",
+               "%s\tNA\t%s%s",
                get_strAry(
                   acntSTPtr->uniqParStr,
                   acntSTPtr->numToParAryUS[parUS]
@@ -3715,6 +3911,7 @@ pSum_st_acnt(
          /*this account does not exist*/
 
       parSumF += totalAryF[indexSL];
+      totalF += totalAryF[indexSL];
       errSC = 1;
 
       nextAcnt_fun23_sec05_sub02:;
@@ -3737,7 +3934,7 @@ pSum_st_acnt(
 
       fprintf(
          (FILE *) outFILE,
-         "%s\t%s%s",
+         "%s\tNA\t%s%s",
          get_strAry(
             acntSTPtr->uniqParStr,
             acntSTPtr->numToParAryUS[parUS]
@@ -3746,6 +3943,24 @@ pSum_st_acnt(
          str_endLine
       ); /*print account name and total*/
    } /*If: have final, unprinted total*/
+
+   /*****************************************************\
+   * Fun23 Sec05 Sub04:
+   *   - print total for all parent accounts
+   \*****************************************************/
+
+   double_numToStr(
+      totalStr,
+      totalF,
+      percisionUC
+   ); /*covert total to string*/
+
+   fprintf(
+      (FILE *) outFILE,
+      "total\tNA\t%s%s",
+      totalStr,
+      str_endLine
+   ); /*print account name and total*/
 
    /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\
    ^ Fun23 Sec05:
