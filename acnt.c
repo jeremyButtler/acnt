@@ -3464,6 +3464,7 @@ pEntries_st_acnt(
             );
       else
          tmpParStr = parStr;
+
       if(! childStr)
          tmpChildStr =
             get_strAry(
@@ -3473,11 +3474,7 @@ pEntries_st_acnt(
                ]
             );
       else
-      { /*Else: user wanted sums printed*/
          tmpChildStr = childStr;
-         totalHeapAryF[slTotal] +=
-            acntSTPtr->tranAryF[indexSL];
-      } /*Else: user wanted sums printed*/
 
 
       if(sumBl)
@@ -3485,6 +3482,9 @@ pEntries_st_acnt(
          slTotal = acntSTPtr->parAryUS[indexSL];
          hitHeapAryBl[slTotal] = 1;
          parTotalHeapAryF[slTotal] +=
+            acntSTPtr->tranAryF[indexSL];
+
+         totalHeapAryF[slTotal] +=
             acntSTPtr->tranAryF[indexSL];
       } /*If: printing sums (not entries)*/
 

@@ -295,6 +295,9 @@ Acnt applies commands in a certain order. The first
 
 # Updates:
 
+- 2025-04-25:
+  - fixed bug in `acnt file account.tsv -print sum` would
+    wrongly sum sub-accounts
 - 2025-04-06:
   - add in sum command for print `-print sum`
   - changed `-sum` to print all entries as tsv
