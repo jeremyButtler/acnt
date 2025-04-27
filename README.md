@@ -167,7 +167,9 @@ To start an interactive sesssion
   do `acnt -file account.tsv -print -child savings`
 - To print a summary of all saving funds accross all
   parent accounts
-  do `acnt -file account.tsv -print sum -child savings`
+  do `acnt -file account.tsv -print hsum -child savings`
+  - to get a non-separated tsv file use `-print sum`
+    instead of `-print hsum`
 - To acutally save an account you will need to
   do `acnt -file account.tsv -add -amount 100 -par savings -child savings -out account.tsv`
   - notice, we are saving to the same account we are
@@ -295,6 +297,10 @@ Acnt applies commands in a certain order. The first
 
 # Updates:
 
+- 2025-04-26:
+  - added `-print hsum` to print divider between parent
+    child account sums, account totals, and total sums
+    when printing
 - 2025-04-25:
   - fixed bug in `acnt file account.tsv -print sum` would
     wrongly sum sub-accounts

@@ -2587,7 +2587,7 @@ pEntries_cmdAcnt(
       dayArySC[1] = 0;
 
       printf(
-         "day (print sums [no]; (yes/no): q to quite):%s",
+         "print sums [no]; (yes/tsv/no): q to quite):%s",
          str_endLine
       );
 
@@ -2612,6 +2612,12 @@ pEntries_cmdAcnt(
       ) goto quite_fun03_sec10;
 
       else if(*tmpStr == 'y')
+      { /*Else If: printing sums*/
+         sumBl = 2;
+         break;
+      } /*Else If: printing sums*/
+
+      else if(*tmpStr == 't')
       { /*Else If: printing sums*/
          sumBl = 1;
          break;

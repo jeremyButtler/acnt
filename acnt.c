@@ -3182,6 +3182,9 @@ pIndex_st_acnt(
 |     o number decimals to print (prentend/mock delete)
 |   - sumBl:
 |     o print sums of searched entries instead of entries
+|       * 2 print sums with line break between totals
+|       * 1 print sums as tsv (no breaks)
+|       * 0 print entries as is
 |   - outFILE:
 |     o FILE pointer to print search to
 | Output:
@@ -3606,6 +3609,16 @@ pEntries_st_acnt(
       *   - print parent account sums (if sum requested)
       \**************************************************/
 
+      if(sumBl == 2)
+      { /*If: printing break between sums*/
+         fprintf(
+            (FILE *) outFILE,
+            "%s---------Parent_account_sums---------%s",
+            str_endLine,
+            str_endLine
+         );
+      } /*If: printing break between sums*/
+
       slTotal = 0;
 
       for(
@@ -3640,6 +3653,16 @@ pEntries_st_acnt(
       parTotalHeapAryF = 0;
       free(hitHeapAryBl);
       hitHeapAryBl = 0;
+
+      if(sumBl == 2)
+      { /*If: printing break between sums*/
+         fprintf(
+            (FILE *) outFILE,
+            "%s---------Total_in_accounts-----------%s",
+            str_endLine,
+            str_endLine
+         );
+      } /*If: printing break between sums*/
 
       double_numToStr(
          totalStr,

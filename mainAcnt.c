@@ -54,6 +54,7 @@
 #define def_sumCmd_mainAcnt 32
 #define def_promptCmd_mainAcnt 64
 #define def_mockCmd_mainAcnt 128
+#define def_phSum_mainAcnt 256
 
 #define def_stdinBuff_mainAcnt 1024
 
@@ -418,6 +419,13 @@ phelp_mainAcnt(
       "        * `-print sum` prints a summary (-sum)%s",
       str_endLine
    );
+
+   fprintf(
+      (FILE *) outFILE,
+      "        * `-print hsum` summary with a break%s",
+      str_endLine
+   );
+
 
    fprintf(
       (FILE *) outFILE,
@@ -847,14 +855,16 @@ phelp_mainAcnt(
 |       search, and sum printing
 |   - divyFileStrPtr,
 |     o c-string pointer to point to divy file path
-|   - cmdFlagsSCPtr,   
-|     o signed char to pointer to hold command to run
+|   - cmdFlagsSSPtr,   
+|     o signed short to pointer to hold command to run
 |       * def_addCmd_mainAcnt to do addition command
 |       * def_delCmd_mainAcnt to do deletion command
 |       * def_divyCmd_mainAcnt to do divy command
 |       * def_pEntriesCmd_mainAcnt to print entries
 |       * def_sumCmd_mainAcnt to print sums
 |       * def_promptCmd_mainAcnt to run prompt session
+|         i def_sumCmd_mainAcnt | def_altSum_mainAcnt if
+|           user wants to print human sum command
 |   - parStrPtr,     
 |     o c-stirng pointer to piont to parent account name
 |   - childStrPtr,   
@@ -900,7 +910,7 @@ input_mainAcnt(
    signed char **outFileStrPtr, /*gets output file*/
    signed char **divyFileStrPtr,/*gets divy file*/
    signed char **printFileStrPtr, /*search/sum print*/
-   signed char *cmdFlagsSCPtr,   /*holds command to run*/
+   signed short *cmdFlagsSSPtr, /*holds command to run*/
    signed char **parStrPtr,     /*parent account*/
    signed char **childStrPtr,   /*child account*/
    float *addAmountFPtr,        /*amount to apply*/
@@ -1010,7 +1020,7 @@ input_mainAcnt(
 
          if(sumDefBl)
          { /*If: need to remove default sum cmd*/
-            *cmdFlagsSCPtr &= (~def_sumCmd_mainAcnt);
+            *cmdFlagsSSPtr &= (~def_sumCmd_mainAcnt);
             sumDefBl = 0;
          } /*If: need to remove default sum cmd*/
       }  /*Else If: divy tsv file*/
@@ -1043,7 +1053,7 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: user adding account entry*/
-         *cmdFlagsSCPtr |= def_addCmd_mainAcnt;
+         *cmdFlagsSSPtr |= def_addCmd_mainAcnt;
          ++siArg;
          tmpStr = (signed char *) argAryStr[siArg];
 
@@ -1066,7 +1076,7 @@ input_mainAcnt(
 
          if(sumDefBl)
          { /*If: need to remove default sum cmd*/
-            *cmdFlagsSCPtr &= (~def_sumCmd_mainAcnt);
+            *cmdFlagsSSPtr &= (~def_sumCmd_mainAcnt);
             sumDefBl = 0;
          } /*If: need to remove default sum cmd*/
       }  /*Else If: user adding account entry*/
@@ -1076,7 +1086,7 @@ input_mainAcnt(
             (signed char *) "-no-add",
             (signed char *) argAryStr[siArg]
          )
-      ) *cmdFlagsSCPtr &= (~def_addCmd_mainAcnt);
+      ) *cmdFlagsSSPtr &= (~def_addCmd_mainAcnt);
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
       + Fun03 Sec02 Sub02 Cat02:
@@ -1089,7 +1099,7 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: deleting an index*/
-         *cmdFlagsSCPtr |= def_delCmd_mainAcnt;
+         *cmdFlagsSSPtr |= def_delCmd_mainAcnt;
          ++siArg;
          tmpStr = (signed char *) argAryStr[siArg];
 
@@ -1112,7 +1122,7 @@ input_mainAcnt(
 
          if(sumDefBl)
          { /*If: need to remove default sum cmd*/
-            *cmdFlagsSCPtr &= (~def_sumCmd_mainAcnt);
+            *cmdFlagsSSPtr &= (~def_sumCmd_mainAcnt);
             sumDefBl = 0;
          } /*If: need to remove default sum cmd*/
       }  /*Else If: deleting an index*/
@@ -1123,7 +1133,7 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: not removing entry*/
-         *cmdFlagsSCPtr &= (~def_delCmd_mainAcnt);
+         *cmdFlagsSSPtr &= (~def_delCmd_mainAcnt);
          *indexSLPtr = 0;
       }  /*Else If: not removing entry*/
 
@@ -1138,7 +1148,7 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: wants to do a divy*/
-         *cmdFlagsSCPtr |= def_divyCmd_mainAcnt;
+         *cmdFlagsSSPtr |= def_divyCmd_mainAcnt;
          ++siArg;
          tmpStr = (signed char *) argAryStr[siArg];
 
@@ -1161,7 +1171,7 @@ input_mainAcnt(
 
          if(sumDefBl)
          { /*If: need to remove default sum cmd*/
-            *cmdFlagsSCPtr &= (~def_sumCmd_mainAcnt);
+            *cmdFlagsSSPtr &= (~def_sumCmd_mainAcnt);
             sumDefBl = 0;
          } /*If: need to remove default sum cmd*/
       }  /*Else If: wants to do a divy*/
@@ -1171,7 +1181,7 @@ input_mainAcnt(
             (signed char *) "-no-divy",
             (signed char *) argAryStr[siArg]
          )
-      ) *cmdFlagsSCPtr &= (~def_divyCmd_mainAcnt);
+      ) *cmdFlagsSSPtr &= (~def_divyCmd_mainAcnt);
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
       + Fun03 Sec02 Sub02 Cat04:
@@ -1184,7 +1194,7 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: user wanted a summary*/
-         *cmdFlagsSCPtr |= def_sumCmd_mainAcnt;
+         *cmdFlagsSSPtr |= def_sumCmd_mainAcnt;
 
          if(sumDefBl)
             sumDefBl = 0;
@@ -1195,7 +1205,7 @@ input_mainAcnt(
             (signed char *) "-no-sum",
             (signed char *) argAryStr[siArg]
          )
-      ) *cmdFlagsSCPtr &= (~def_sumCmd_mainAcnt);
+      ) *cmdFlagsSSPtr &= (~def_sumCmd_mainAcnt);
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
       + Fun03 Sec02 Sub02 Cat05:
@@ -1216,9 +1226,21 @@ input_mainAcnt(
                && (argAryStr[siArg + 1][2] & ~ 32) == 'M' 
                && (argAryStr[siArg + 1][3] & ~ 32) == '\0' 
             ){ /*If: sum requested*/
-               *cmdFlagsSCPtr = def_entriesSum_mainAcnt;
+               *cmdFlagsSSPtr = def_entriesSum_mainAcnt;
                ++siArg;
             }  /*If: sum requested*/
+
+            else if(
+                  (argAryStr[siArg + 1][0] & ~ 32) == 'H' 
+               && (argAryStr[siArg + 1][1] & ~ 32) == 'S' 
+               && (argAryStr[siArg + 1][2] & ~ 32) == 'U' 
+               && (argAryStr[siArg + 1][3] & ~ 32) == 'M' 
+               && (argAryStr[siArg + 1][4] & ~ 32) == '\0' 
+            ){ /*Else If: human sum requested*/
+               *cmdFlagsSSPtr = def_entriesSum_mainAcnt;
+               *cmdFlagsSSPtr |= def_phSum_mainAcnt;
+               ++siArg;
+            }  /*Else If: human sum requested*/
 
             else if(
                   (argAryStr[siArg + 1][0] & ~ 32) == 'E' 
@@ -1228,7 +1250,7 @@ input_mainAcnt(
                && (argAryStr[siArg + 1][4] & ~ 32) == 'Y' 
                && (argAryStr[siArg + 1][5] & ~ 32) == '\0' 
             ){ /*Else If: entry print requested*/
-               *cmdFlagsSCPtr &= ~def_entriesSum_mainAcnt;
+               *cmdFlagsSSPtr &= ~def_entriesSum_mainAcnt;
                ++siArg;
             }  /*Else If: entry print requested*/
 
@@ -1244,11 +1266,11 @@ input_mainAcnt(
             } /*Else If: invalid input*/
          } /*If: have more arguments*/
 
-         *cmdFlagsSCPtr |= def_pEntriesCmd_mainAcnt;
+         *cmdFlagsSSPtr |= def_pEntriesCmd_mainAcnt;
 
          if(sumDefBl)
          { /*If: need to remove default sum cmd*/
-            *cmdFlagsSCPtr &= (~def_sumCmd_mainAcnt);
+            *cmdFlagsSSPtr &= (~def_sumCmd_mainAcnt);
             sumDefBl = 0;
          } /*If: need to remove default sum cmd*/
       }  /*Else If: user wanted to search for entries*/
@@ -1259,8 +1281,8 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: not printing entries*/
-        *cmdFlagsSCPtr &= ~def_pEntriesCmd_mainAcnt;
-        *cmdFlagsSCPtr &= ~def_entriesSum_mainAcnt;
+        *cmdFlagsSSPtr &= ~def_pEntriesCmd_mainAcnt;
+        *cmdFlagsSSPtr &= ~def_entriesSum_mainAcnt;
       }  /*Else If: not printing entries*/
 
       /*+++++++++++++++++++++++++++++++++++++++++++++++++\
@@ -1274,11 +1296,11 @@ input_mainAcnt(
             (signed char *) argAryStr[siArg]
          )
       ){ /*Else If: user wanted interative session*/
-         *cmdFlagsSCPtr |= def_promptCmd_mainAcnt;
+         *cmdFlagsSSPtr |= def_promptCmd_mainAcnt;
 
          if(sumDefBl)
          { /*If: need to remove default sum cmd*/
-            *cmdFlagsSCPtr &= (~def_sumCmd_mainAcnt);
+            *cmdFlagsSSPtr &= (~def_sumCmd_mainAcnt);
             sumDefBl = 0;
          } /*If: need to remove default sum cmd*/
       }  /*Else If: user wanted interative session*/
@@ -1288,7 +1310,7 @@ input_mainAcnt(
             (signed char *) "-no-prompt",
             (signed char *) argAryStr[siArg]
          )
-      ) *cmdFlagsSCPtr &= (~def_promptCmd_mainAcnt);
+      ) *cmdFlagsSSPtr &= (~def_promptCmd_mainAcnt);
 
       /**************************************************\
       * Fun03 Sec02 Sub03:
@@ -1687,14 +1709,14 @@ input_mainAcnt(
             (signed char *) "-pretend",
             (signed char *) argAryStr[siArg]
          )
-      ) *cmdFlagsSCPtr |= def_mockCmd_mainAcnt;
+      ) *cmdFlagsSSPtr |= def_mockCmd_mainAcnt;
 
       else if(
          ! eqlNull_ulCp(
             (signed char *) "-no-pretend",
             (signed char *) argAryStr[siArg]
          )
-      ) *cmdFlagsSCPtr &= (~def_mockCmd_mainAcnt);
+      ) *cmdFlagsSSPtr &= (~def_mockCmd_mainAcnt);
 
       /**************************************************\
       * Fun03 Sec02 Sub04:
@@ -1880,7 +1902,7 @@ main(
    signed char *parStr = 0;   /*parent account*/
    signed char *childStr = 0; /*child account*/
 
-   signed char cmdFlagsSC = def_sumCmd_mainAcnt;
+   signed short cmdFlagsSS = def_sumCmd_mainAcnt;
    float addAmountF = 0;         /*amount to transfer*/
    float divyAmountF = 0;        /*amount to transfer*/
    signed char ghostBl = def_ghost_defsAcnt;
@@ -1937,9 +1959,9 @@ main(
    init_st_acnt(&acntStackST);
 
    if(def_prompt_defsAcnt)
-      cmdFlagsSC |= def_promptCmd_mainAcnt;
+      cmdFlagsSS |= def_promptCmd_mainAcnt;
    if(def_mock_defsAcnt)
-      cmdFlagsSC |= def_mockCmd_mainAcnt;
+      cmdFlagsSS |= def_mockCmd_mainAcnt;
 
    /*set up date, add, divy, and search commands*/
    time(&timeRaw);
@@ -1970,7 +1992,7 @@ main(
          &outFileStr,   /*output file*/
          &divyFileStr,  /*divy file to use*/
          &printFileStr, /*sum/search print output file*/
-         &cmdFlagsSC,   /*commands to run*/
+         &cmdFlagsSS,   /*commands to run*/
          &parStr,       /*parent account*/
          &childStr,     /*child account*/
          &addAmountF,   /*amount to transfer*/
@@ -2091,7 +2113,7 @@ main(
       divyBuffHeapStr[lenDivyUL] = '\0';
    } /*If: input divy file*/
 
-   else if(cmdFlagsSC & def_divyCmd_mainAcnt)
+   else if(cmdFlagsSS & def_divyCmd_mainAcnt)
    { /*Else If: no divy file, but requested divy*/
       fprintf(
          stderr,
@@ -2247,10 +2269,10 @@ main(
    *   - delete requested entry
    \*****************************************************/
 
-   if(cmdFlagsSC & def_delCmd_mainAcnt)
+   if(cmdFlagsSS & def_delCmd_mainAcnt)
    { /*If: doing deletion*/
       
-      if(cmdFlagsSC & def_mockCmd_mainAcnt)
+      if(cmdFlagsSS & def_mockCmd_mainAcnt)
          tmpFILE = stFILE; /*pretend deletion*/
       else
          tmpFILE = 0;      /*real deletion*/
@@ -2281,10 +2303,10 @@ main(
    *   - add entry
    \*****************************************************/
 
-   if(cmdFlagsSC & def_addCmd_mainAcnt)
+   if(cmdFlagsSS & def_addCmd_mainAcnt)
    { /*If: doing addition*/
       
-      if(cmdFlagsSC & def_mockCmd_mainAcnt)
+      if(cmdFlagsSS & def_mockCmd_mainAcnt)
          tmpFILE = stFILE; /*pretend addition*/
       else
          tmpFILE = 0;      /*real addition*/
@@ -2340,10 +2362,10 @@ main(
    *   - divy entry
    \*****************************************************/
 
-   if(cmdFlagsSC & def_divyCmd_mainAcnt)
+   if(cmdFlagsSS & def_divyCmd_mainAcnt)
    { /*If: doing addition*/
       
-      if(cmdFlagsSC & def_mockCmd_mainAcnt)
+      if(cmdFlagsSS & def_mockCmd_mainAcnt)
          tmpFILE = stFILE; /*pretend addition*/
       else
          tmpFILE = 0;      /*real addition*/
@@ -2406,8 +2428,11 @@ main(
    *   - search and print accounts
    \*****************************************************/
 
-   if(cmdFlagsSC & def_pEntriesCmd_mainAcnt)
+   if(cmdFlagsSS & def_pEntriesCmd_mainAcnt)
    { /*If: doing search*/
+      errSC = !!(cmdFlagsSS & def_entriesSum_mainAcnt);
+      errSC += !!(cmdFlagsSS & def_phSum_mainAcnt);
+
       errSC =
          pEntries_st_acnt(
             &acntStackST,
@@ -2417,7 +2442,7 @@ main(
             monthArySC,
             dayArySC,
             percisionUC,
-            !!(cmdFlagsSC & def_entriesSum_mainAcnt),
+            errSC,
             pOutFILE
          );
 
@@ -2449,7 +2474,7 @@ main(
    *   - print account sums
    \*****************************************************/
 
-   if(cmdFlagsSC & def_sumCmd_mainAcnt)
+   if(cmdFlagsSS & def_sumCmd_mainAcnt)
    { /*If: printing sums*/
       errSC =
          pSum_st_acnt(
@@ -2479,7 +2504,7 @@ main(
    *   - print additions and deletions to account
    \*****************************************************/
 
-   if(cmdFlagsSC & def_promptCmd_mainAcnt)
+   if(cmdFlagsSS & def_promptCmd_mainAcnt)
       ; /*if user running interactive session; let the
         `  save the modifications
         */
@@ -2490,18 +2515,18 @@ main(
    ) goto pchange_main_sec03_sub06;
 
    else if(
-         ! (cmdFlagsSC & def_delCmd_mainAcnt)
-      && ! (cmdFlagsSC & def_addCmd_mainAcnt)
-      && ! (cmdFlagsSC & def_divyCmd_mainAcnt)
+         ! (cmdFlagsSS & def_delCmd_mainAcnt)
+      && ! (cmdFlagsSS & def_addCmd_mainAcnt)
+      && ! (cmdFlagsSS & def_divyCmd_mainAcnt)
    ) ; /*made no modifications to account*/
 
-   else if(cmdFlagsSC & def_sumCmd_mainAcnt)
+   else if(cmdFlagsSS & def_sumCmd_mainAcnt)
       ; /*wanted a summary*/
 
-   else if(cmdFlagsSC & def_pEntriesCmd_mainAcnt)
+   else if(cmdFlagsSS & def_pEntriesCmd_mainAcnt)
       ; /*wanted a search and print*/
 
-   else if(cmdFlagsSC & def_mockCmd_mainAcnt)
+   else if(cmdFlagsSS & def_mockCmd_mainAcnt)
       ; /*doing pretend (mock) change*/
 
    else
@@ -2599,7 +2624,7 @@ main(
    +   - print prompt, get input, + start loop
    \++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-   if(! (cmdFlagsSC & def_promptCmd_mainAcnt) )
+   if(! (cmdFlagsSS & def_promptCmd_mainAcnt) )
       goto done_main_sec05;
       /*not doing interactive session*/
 
