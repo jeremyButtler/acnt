@@ -2146,13 +2146,12 @@ addEntry_st_acnt(
       ghostF = amountF - ((signed int) amountF);
 
       if(ghostF < 0)
+      { /*If: need to round up*/
+         --amountF; /*round up in negative case*/
          ghostF *= -1;
+      } /*If: need to round up*/
  
       amountF = (signed int) amountF;
-
-      if(amountF < 0)
-         --amountF; /*round up*/
-
       ghostTotalF = ghostF;
 
       ghostIndexSL = 
@@ -3486,9 +3485,6 @@ pEntries_st_acnt(
          hitHeapAryBl[slTotal] = 1;
          parTotalHeapAryF[slTotal] +=
             acntSTPtr->tranAryF[indexSL];
-
-         totalHeapAryF[slTotal] +=
-            acntSTPtr->tranAryF[indexSL];
       } /*If: printing sums (not entries)*/
 
       slTotal = acntSTPtr->parAryUS[indexSL];
@@ -3499,8 +3495,10 @@ pEntries_st_acnt(
 
       if(sumBl)
          hitChildHeapAryBl[slTotal] = 1;
+
       else
       { /*Else: printing entries*/
+
          /*floats are not 100% accurate, so need to do
          `   some rounding
          */

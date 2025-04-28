@@ -297,6 +297,12 @@ Acnt applies commands in a certain order. The first
 
 # Updates:
 
+- 2025-04-27:
+  - fixed bug in `-print sum` and `-print hsum` were child
+    account sums were incorectly summed
+  - fixed issue were `-ghost` used with `-add` and a
+    negative whole number (ex -100) would round whole
+    numbers
 - 2025-04-26:
   - added `-print hsum` to print divider between parent
     child account sums, account totals, and total sums
