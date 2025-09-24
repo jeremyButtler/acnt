@@ -2149,6 +2149,7 @@ addEntry_st_acnt(
       { /*If: need to round up*/
          --amountF; /*round up in negative case*/
          ghostF *= -1;
+         ghostF = 1 - ghostF;
       } /*If: need to round up*/
  
       amountF = (signed int) amountF;

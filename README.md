@@ -297,6 +297,10 @@ Acnt applies commands in a certain order. The first
 
 # Updates:
 
+- 2025-09-23:
+  - fixed bug were `-add` with a negative number would
+    round off the cents to the ghost account. It now finds
+    the extra cents added by rounding.
 - 2025-04-27:
   - fixed bug in `-print sum` and `-print hsum` were child
     account sums were incorectly summed
