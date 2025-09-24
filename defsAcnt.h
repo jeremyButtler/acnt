@@ -4,8 +4,8 @@
 \~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 #define def_year_defsAcnt 2025
-#define def_month_defsAcnt 4
-#define def_day_defsAcnt 26
+#define def_month_defsAcnt 9
+#define def_day_defsAcnt 23
 
 #define def_percison_defsAcnt 2 /*2 decimals*/
 #define def_ghost_defsAcnt 1    /*1: apply ghost account*/
