@@ -2189,7 +2189,7 @@ main(
          fprintf(
             stderr,
             "line %li in -file %s is invalid%s",
-            tmpSL - 1,
+            tmpSL,
             acntFileStr,
             str_endLine
          );
