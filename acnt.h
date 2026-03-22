@@ -437,8 +437,8 @@ addNewChild_st_acnt(
 |     o 0 for no errors
 |     o def_memErr_acnt for memory errors
 |     o def_noFILE_acnt if empty/no file
-|     o (line << 4 | def_fileErr_acnt) for file errors
-|       - do (error >> 4) to get line number
+|     o line + 1 for file errors
+|       - do error - 1 to get the line the error was on
 \-------------------------------------------------------*/
 signed long
 readFile_acnt(

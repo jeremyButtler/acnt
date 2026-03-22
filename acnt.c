@@ -1465,8 +1465,8 @@ addNewChild_st_acnt(
 |     o 0 for no errors
 |     o def_memErr_acnt for memory errors
 |     o def_noFILE_acnt if empty/no file
-|     o (line << 4 | def_fileErr_acnt) for file errors
-|       - do (error >> 4) to get line number
+|     o line + 1 for file errors
+|       - do error - 1 to get the line the error was on
 \-------------------------------------------------------*/
 signed long
 readFile_acnt(
@@ -1562,9 +1562,6 @@ readFile_acnt(
    ) indexColBl = 1;
      /*first column has index's*/
 
-
-   ++lineSL;
-
    /*****************************************************\
    * Fun18 Sec02 Sub02:
    *   - move past initial white space + allocate + loop
@@ -1577,7 +1574,7 @@ readFile_acnt(
          (FILE *) acntFILE
       )
    ){ /*Loop: read in file*/
-
+      ++lineSL;
 
       /*move past any initial white space*/
       posUS = 0;
@@ -1992,7 +1989,7 @@ readFile_acnt(
       return def_noFILE_acnt;
 
    fileErr_fun18_sec05:;
-      return (lineSL << 4) | def_fileErr_acnt;
+      return lineSL + 1;
 } /*readFile_acnt*/
 
 /*-------------------------------------------------------\

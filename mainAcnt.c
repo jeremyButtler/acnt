@@ -2069,19 +2069,9 @@ main(
       +   - get file length and allocate memory
       \+++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-      fseek(
-         stFILE,
-         0,
-         SEEK_END
-      );
-
+      fseek(stFILE, 0, SEEK_END);
       lenDivyUL = ftell(stFILE);
-
-      fseek(
-         stFILE,
-         0,
-         SEEK_SET
-      );
+      fseek(stFILE, 0, SEEK_SET);
 
       divyBuffHeapStr =
          malloc((lenDivyUL + 9) * sizeof(signed char));
@@ -2140,18 +2130,12 @@ main(
    +   - open account file
    \++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-   if(
-         ! acntFileStr
-      || *acntFileStr == '-'
-   ) stFILE = stdin;
+   if( ! acntFileStr || *acntFileStr == '-')
+      stFILE = stdin;
 
    else
    { /*Else: user input account file*/
-      stFILE =
-        fopen(
-           (char *) acntFileStr,
-           "r"
-        );
+      stFILE = fopen((char *) acntFileStr, "r");
 
       if(! stFILE)
       { /*If: could not open account file*/
@@ -2170,11 +2154,7 @@ main(
    +   - read account file
    \++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-   tmpSL =
-      readFile_acnt(
-         &acntStackST,
-         stFILE
-      );
+   tmpSL = readFile_acnt( &acntStackST, stFILE);
 
    if(stFILE != stdin)
       fclose(stFILE);
@@ -2209,7 +2189,7 @@ main(
          fprintf(
             stderr,
             "line %li in -file %s is invalid%s",
-            (tmpSL >> 4),
+            tmpSL - 1,
             acntFileStr,
             str_endLine
          );
