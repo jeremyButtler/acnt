@@ -1975,7 +1975,7 @@ main(
    monthArySC[0] = 0; /*any month*/
    monthArySC[1] = 0;
 
-   daySC = (signed short) timeSTPtr->tm_mday + 1;
+   daySC = (signed short) timeSTPtr->tm_mday;
    dayArySC[0] = 0; /*any day*/
    dayArySC[1] = 0;
 
